@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useLawList, fetchArticleByNumber, Article } from "@/services/googleSheetsService";
 import { ArticleCard } from "@/components/article/ArticleCard";
-import { Search, Robot } from "lucide-react";
-import { Loader2 } from "lucide-react";
+import { Search, Bot, Loader2 } from "lucide-react";
 
 export function SearchView() {
   const { laws, loading: loadingLaws } = useLawList();
@@ -136,7 +135,7 @@ export function SearchView() {
             animate={{ opacity: 1 }}
             className="text-center py-12"
           >
-            <Robot className="mx-auto h-16 w-16 text-vade-purple-primary/30 mb-4" />
+            <Bot className="mx-auto h-16 w-16 text-vade-purple-primary/30 mb-4" />
             <h2 className="text-xl font-medium text-white/80 mb-2">Bem-vindo ao VADE MECUM PRO</h2>
             <p className="text-white/60 max-w-md mx-auto">
               Selecione uma lei e informe o número do artigo para começar a busca.

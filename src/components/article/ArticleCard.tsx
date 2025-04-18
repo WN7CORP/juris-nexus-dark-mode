@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { Play, Pause, Copy, Bookmark, Highlighter, Bot, FileText, FileOutput, HelpCircle } from "lucide-react";
+import { Play, Pause, Copy, Bookmark, Highlighter, Bot, FileText, FileOutput, HelpCircle, Loader2, Robot as BotIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
@@ -11,8 +10,7 @@ import { Article } from "@/services/googleSheetsService";
 import speechService from "@/services/speechService";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2 } from "lucide-react";
-import { getArticleExplanation, askQuestionAboutArticle } from "@/services/geminiService";
+import { FaHighlight, FaBookmark as FaSolidBookmark, FaRegularBookmark, FaRobot, FaRegularNote, FaRegularArrowUpFromBracket } from "react-icons/fa6";
 
 interface ArticleCardProps {
   article: Article;
@@ -23,7 +21,7 @@ interface ArticleCardProps {
 export function ArticleCard({ article, lawName, onExport }: ArticleCardProps) {
   const [isNarrating, setIsNarrating] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
-  const [highlightColor, setHighlightColor] = useState("#FFEB3B"); // Amarelo padrão
+  const [highlightColor, setHighlightColor] = useState("#FFEB3B");
   const [isHighlighting, setIsHighlighting] = useState(false);
   const [userNotes, setUserNotes] = useState("");
   const [aiExplanation, setAiExplanation] = useState("");
@@ -33,8 +31,7 @@ export function ArticleCard({ article, lawName, onExport }: ArticleCardProps) {
   const [userQuestion, setUserQuestion] = useState("");
   const [aiAnswer, setAiAnswer] = useState("");
   const [isSubmittingQuestion, setIsSubmittingQuestion] = useState(false);
-  
-  // Função para iniciar ou parar a narração
+
   const toggleNarration = () => {
     if (isNarrating) {
       speechService.stop();
@@ -47,8 +44,7 @@ export function ArticleCard({ article, lawName, onExport }: ArticleCardProps) {
       );
     }
   };
-  
-  // Função para copiar o texto do artigo
+
   const copyArticleText = () => {
     navigator.clipboard.writeText(article.text);
     toast({
@@ -56,20 +52,17 @@ export function ArticleCard({ article, lawName, onExport }: ArticleCardProps) {
       description: "O texto do artigo foi copiado para a área de transferência."
     });
   };
-  
-  // Função para alternar favorito
+
   const toggleFavorite = () => {
     setIsFavorited(!isFavorited);
-    // Em uma implementação real, salvaria no localStorage ou em um backend
     toast({
       title: !isFavorited ? "Artigo favoritado!" : "Artigo removido dos favoritos",
       variant: !isFavorited ? "default" : "destructive"
     });
   };
-  
-  // Função para solicitar explicação do Gemini
+
   const getGeminiExplanation = async () => {
-    if (aiExplanation && aiExample) return; // Já temos a explicação
+    if (aiExplanation && aiExample) return;
     
     setIsLoadingAI(true);
     try {
@@ -92,8 +85,7 @@ export function ArticleCard({ article, lawName, onExport }: ArticleCardProps) {
       setIsLoadingAI(false);
     }
   };
-  
-  // Função para enviar uma pergunta ao Gemini
+
   const submitQuestion = async () => {
     if (!userQuestion.trim()) return;
     
@@ -118,13 +110,11 @@ export function ArticleCard({ article, lawName, onExport }: ArticleCardProps) {
       setIsSubmittingQuestion(false);
     }
   };
-  
-  // Função para habilitar seleção de texto para destaque
+
   const enableHighlighting = () => {
     setIsHighlighting(true);
   };
-  
-  // Função para aplicar destaque ao texto selecionado
+
   const applyHighlight = () => {
     const selection = window.getSelection();
     if (!selection || selection.toString().length === 0) return;
@@ -146,14 +136,13 @@ export function ArticleCard({ article, lawName, onExport }: ArticleCardProps) {
       });
     }
   };
-  
-  // Renderizar o texto do artigo com quebras de linha preservadas
+
   const renderArticleText = () => {
     return article.text.split('\n').map((line, index) => (
       <p key={index} className="mb-2">{line}</p>
     ));
   };
-  
+
   return (
     <>
       <Card className={article.isNumbered ? "article-card" : "mt-8 mb-4"}>
@@ -202,7 +191,7 @@ export function ArticleCard({ article, lawName, onExport }: ArticleCardProps) {
                       className="flex items-center gap-1"
                       onClick={enableHighlighting}
                     >
-                      <FaHighlighter size={14} />
+                      <Highlighter size={14} />
                       Destacar
                     </Button>
                   </PopoverTrigger>
@@ -245,7 +234,7 @@ export function ArticleCard({ article, lawName, onExport }: ArticleCardProps) {
                   className="flex items-center gap-1"
                   onClick={toggleFavorite}
                 >
-                  {isFavorited ? <FaBookmark size={14} /> : <FaRegBookmark size={14} />}
+                  {isFavorited ? <FaSolidBookmark size={14} /> : <FaRegularBookmark size={14} />}
                   {isFavorited ? "Favoritado" : "Favoritar"}
                 </Button>
               </div>
@@ -259,7 +248,7 @@ export function ArticleCard({ article, lawName, onExport }: ArticleCardProps) {
           <Card className="gemini-feature overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-xl flex items-center gap-2">
-                <PiRobot size={24} className="text-vade-purple-primary animate-pulse-soft" />
+                <FaRobot size={24} className="text-vade-purple-primary animate-pulse-soft" />
                 <span className="text-gradient">Explicação Gemini</span>
               </CardTitle>
               
@@ -302,7 +291,7 @@ export function ArticleCard({ article, lawName, onExport }: ArticleCardProps) {
                 </Tabs>
               ) : (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <Robot size={36} className="text-vade-purple-primary mb-3" />
+                  <Bot size={36} className="text-vade-purple-primary mb-3" />
                   <p className="text-lg font-medium">Solicite uma explicação detalhada</p>
                   <p className="text-sm text-muted-foreground mt-1">
                     Clique em "Explicar" para obter uma análise jurídica e um exemplo prático deste artigo.
@@ -316,7 +305,7 @@ export function ArticleCard({ article, lawName, onExport }: ArticleCardProps) {
             <Card className="card-neo">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <PiNote size={20} />
+                  <FaRegularNote size={20} />
                   Anotações
                 </CardTitle>
               </CardHeader>
@@ -352,7 +341,7 @@ export function ArticleCard({ article, lawName, onExport }: ArticleCardProps) {
               <Card className="card-neo flex-1">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
-                    <PiExport size={20} />
+                    <FaRegularArrowUpFromBracket size={20} />
                     Exportar
                   </CardTitle>
                 </CardHeader>
@@ -397,7 +386,7 @@ export function ArticleCard({ article, lawName, onExport }: ArticleCardProps) {
               >
                 {isSubmittingQuestion ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" /> 
-                ) : <Robot className="mr-2" />}
+                ) : <BotIcon className="mr-2" />}
                 Enviar Pergunta
               </Button>
             </div>
