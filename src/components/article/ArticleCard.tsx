@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Copy, Highlighter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,9 +21,23 @@ export function ArticleCard({ article, lawName }: ArticleCardProps) {
   const [isNarrating, setIsNarrating] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [isHighlighting, setIsHighlighting] = useState(false);
-  const [highlightColor, setHighlightColor] = useState("#FFEB3B");
+  const [highlightColor, setHighlightColor] = useState("#E5DEFF");
   const [showAnnotations, setShowAnnotations] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
+  
+  const FAVORITES_KEY = "article_favorites";
+  
+  // Check if article is already favorited on load
+  useEffect(() => {
+    const storedFavorites = localStorage.getItem(FAVORITES_KEY);
+    if (storedFavorites) {
+      const favorites = JSON.parse(storedFavorites);
+      const isAlreadyFavorited = favorites.some(
+        (fav: any) => fav.articleId === article.number && fav.lawName === lawName
+      );
+      setIsFavorited(isAlreadyFavorited);
+    }
+  }, [article.number, lawName]);
   
   const handleNarration = () => {
     if (isNarrating) {
@@ -47,11 +61,41 @@ export function ArticleCard({ article, lawName }: ArticleCardProps) {
   };
 
   const toggleFavorite = () => {
+    // Get current favorites
+    const storedFavorites = localStorage.getItem(FAVORITES_KEY);
+    const favorites = storedFavorites ? JSON.parse(storedFavorites) : [];
+    
+    if (!isFavorited) {
+      // Add to favorites
+      const newFavorite = {
+        articleId: article.number,
+        lawName: lawName,
+        text: article.text,
+        timestamp: Date.now()
+      };
+      
+      const updatedFavorites = [...favorites, newFavorite];
+      localStorage.setItem(FAVORITES_KEY, JSON.stringify(updatedFavorites));
+      
+      toast({
+        title: "Artigo favoritado!",
+        description: "O artigo foi adicionado aos seus favoritos."
+      });
+    } else {
+      // Remove from favorites
+      const updatedFavorites = favorites.filter(
+        (fav: any) => !(fav.articleId === article.number && fav.lawName === lawName)
+      );
+      localStorage.setItem(FAVORITES_KEY, JSON.stringify(updatedFavorites));
+      
+      toast({
+        title: "Artigo removido dos favoritos",
+        description: "O artigo foi removido dos seus favoritos.",
+        variant: "destructive"
+      });
+    }
+    
     setIsFavorited(!isFavorited);
-    toast({
-      title: !isFavorited ? "Artigo favoritado!" : "Artigo removido dos favoritos",
-      variant: !isFavorited ? "default" : "destructive"
-    });
   };
   
   const toggleAnnotations = () => {
@@ -70,7 +114,7 @@ export function ArticleCard({ article, lawName }: ArticleCardProps) {
       
       <CardContent className={article.isNumbered ? "pt-8" : "text-legislation"}>
         {/* Top Actions */}
-        <div className="flex gap-2 mb-4">
+        <div className="flex flex-wrap gap-2 mb-4">
           <ArticleActions
             onExplain={handleExplain}
             onNarrate={handleNarration}

@@ -15,20 +15,36 @@ interface GeminiResponse {
   practicalExample: string;
 }
 
-// Prompt para explicação de artigo
-const getExplanationPrompt = (articleNumber: string, articleText: string, lawName: string) => `
-Como especialista jurídico, forneça uma explicação detalhada do seguinte artigo:
+// Prompt para explicação técnica de artigo
+const getTechnicalExplanationPrompt = (articleNumber: string, articleText: string, lawName: string) => `
+Como especialista jurídico, forneça uma explicação técnica e aprofundada do seguinte artigo:
 
 Lei: ${lawName}
 Artigo ${articleNumber}: ${articleText}
 
-Explique o artigo de forma clara e aprofundada, considerando:
+Explique o artigo de forma técnica e detalhada, voltada a profissionais do Direito, considerando:
 1. O significado e interpretação jurídica
-2. Conceitos importantes presentes no texto
-3. Implicações legais
-4. Contexto na legislação brasileira
+2. Conceitos importantes e termos técnicos presentes no texto
+3. Implicações legais e doutrinárias
+4. Contexto na legislação brasileira e jurisprudência relevante
 
-Seja didático e preciso na sua explicação.
+Use linguagem técnica-jurídica apropriada para profissionais da área.
+`;
+
+// Prompt para explicação simplificada de artigo
+const getSimplifiedExplanationPrompt = (articleNumber: string, articleText: string, lawName: string) => `
+Como especialista jurídico, forneça uma explicação simples e acessível do seguinte artigo:
+
+Lei: ${lawName}
+Artigo ${articleNumber}: ${articleText}
+
+Explique o artigo de forma simplificada, para leigos em Direito, considerando:
+1. O significado básico do artigo em linguagem cotidiana
+2. Explicação de termos jurídicos de forma simples
+3. Implicações práticas para cidadãos comuns
+4. Por que esta lei existe e como afeta a vida das pessoas
+
+Evite termos técnicos e use analogias sempre que possível para facilitar a compreensão.
 `;
 
 // Prompt para exemplo prático
@@ -39,25 +55,29 @@ Lei: ${lawName}
 Artigo ${articleNumber}: ${articleText}
 
 Elabore um cenário real e específico onde este artigo seria aplicado, ilustrando:
-1. A situação detalhada
-2. Como o artigo se aplica a esta situação
+1. A situação detalhada com personagens e contexto
+2. Como o artigo se aplica a esta situação específica
 3. O resultado ou consequência jurídica
-4. Se possível, mencione jurisprudência relevante
+4. Se possível, mencione um caso real ou jurisprudência relevante
 
-Seja didático e específico no exemplo.
+Seja didático e específico no exemplo, utilizando uma linguagem acessível.
 `;
 
 // Função para explicar um artigo e fornecer exemplo prático
 export async function getArticleExplanation(
   articleNumber: string, 
   articleText: string, 
-  lawName: string
+  lawName: string,
+  type: "technical" | "simplified" = "technical"
 ): Promise<GeminiResponse> {
   try {
+    // Seleciona o prompt baseado no tipo de explicação solicitada
+    const explanationPrompt = type === "technical" 
+      ? getTechnicalExplanationPrompt(articleNumber, articleText, lawName)
+      : getSimplifiedExplanationPrompt(articleNumber, articleText, lawName);
+    
     // Solicita explicação
-    const explanationResult = await model.generateContent(
-      getExplanationPrompt(articleNumber, articleText, lawName)
-    );
+    const explanationResult = await model.generateContent(explanationPrompt);
     const explanation = explanationResult.response.text();
 
     // Solicita exemplo prático

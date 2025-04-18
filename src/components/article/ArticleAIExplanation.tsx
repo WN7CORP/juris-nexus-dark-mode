@@ -3,8 +3,9 @@ import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Bot, Loader2 } from "lucide-react";
+import { Bot, Loader2, Brain, Lightbulb } from "lucide-react";
 import { getArticleExplanation } from "@/services/geminiService";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface ArticleAIExplanationProps {
   articleNumber: string;
@@ -17,18 +18,35 @@ export function ArticleAIExplanation({
   articleText,
   lawName
 }: ArticleAIExplanationProps) {
-  const [explanation, setExplanation] = useState("");
+  const [technicalExplanation, setTechnicalExplanation] = useState("");
+  const [simplifiedExplanation, setSimplifiedExplanation] = useState("");
   const [practicalExample, setPracticalExample] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("technical");
   
-  const handleExplain = async () => {
+  const handleExplainTechnical = async () => {
     setIsLoading(true);
     try {
-      const response = await getArticleExplanation(articleNumber, articleText, lawName);
-      setExplanation(response.explanation);
+      const response = await getArticleExplanation(articleNumber, articleText, lawName, "technical");
+      setTechnicalExplanation(response.explanation);
       setPracticalExample(response.practicalExample);
+      setActiveTab("technical");
     } catch (error) {
-      console.error("Erro ao obter explicação:", error);
+      console.error("Erro ao obter explicação técnica:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleExplainSimplified = async () => {
+    setIsLoading(true);
+    try {
+      const response = await getArticleExplanation(articleNumber, articleText, lawName, "simplified");
+      setSimplifiedExplanation(response.explanation);
+      setPracticalExample(response.practicalExample);
+      setActiveTab("simplified");
+    } catch (error) {
+      console.error("Erro ao obter explicação simplificada:", error);
     } finally {
       setIsLoading(false);
     }
@@ -42,38 +60,84 @@ export function ArticleAIExplanation({
           <span className="text-gradient">Explicação Gemini</span>
         </CardTitle>
         
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleExplain}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : "Explicar"}
-        </Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : "Explicar"}
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="bg-vade-darker border-vade-purple-primary/20">
+            <DialogHeader>
+              <DialogTitle>Escolha o tipo de explicação</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col space-y-4 py-4">
+              <Button 
+                className="flex items-center gap-2" 
+                onClick={handleExplainTechnical}
+                disabled={isLoading}
+              >
+                <Brain size={18} />
+                Técnica
+                <span className="text-xs text-muted-foreground">(Para profissionais)</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2" 
+                onClick={handleExplainSimplified}
+                disabled={isLoading}
+              >
+                <Lightbulb size={18} />
+                Simplificada
+                <span className="text-xs text-muted-foreground">(Para leigos)</span>
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardHeader>
       
       <CardContent>
-        {explanation ? (
-          <Tabs defaultValue="explanation" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="explanation">Explicação</TabsTrigger>
+        {(technicalExplanation || simplifiedExplanation) ? (
+          <Tabs defaultValue={activeTab} value={activeTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              {technicalExplanation && (
+                <TabsTrigger value="technical" onClick={() => setActiveTab("technical")}>Técnica</TabsTrigger>
+              )}
+              {simplifiedExplanation && (
+                <TabsTrigger value="simplified" onClick={() => setActiveTab("simplified")}>Simplificada</TabsTrigger>
+              )}
               <TabsTrigger value="example">Exemplo Prático</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="explanation" className="mt-4">
-              <div className="prose prose-invert max-w-none">
-                {explanation.split('\n').map((line, index) => (
-                  <p key={index} className="mb-2">{line}</p>
-                ))}
-              </div>
-            </TabsContent>
+            {technicalExplanation && (
+              <TabsContent value="technical" className="mt-4">
+                <div className="prose prose-invert max-w-none">
+                  {technicalExplanation.split('\n').map((line, index) => (
+                    <p key={index} className="mb-4">{line}</p>
+                  ))}
+                </div>
+              </TabsContent>
+            )}
+            
+            {simplifiedExplanation && (
+              <TabsContent value="simplified" className="mt-4">
+                <div className="prose prose-invert max-w-none">
+                  {simplifiedExplanation.split('\n').map((line, index) => (
+                    <p key={index} className="mb-4">{line}</p>
+                  ))}
+                </div>
+              </TabsContent>
+            )}
             
             <TabsContent value="example" className="mt-4">
               <div className="prose prose-invert max-w-none">
                 {practicalExample.split('\n').map((line, index) => (
-                  <p key={index} className="mb-2">{line}</p>
+                  <p key={index} className="mb-4">{line}</p>
                 ))}
               </div>
             </TabsContent>

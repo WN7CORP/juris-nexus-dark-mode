@@ -6,8 +6,8 @@ import { ArticleCard } from "@/components/article/ArticleCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookOpen, ArrowLeft, Loader2, Highlighter } from "lucide-react";
-import { ScrollText, BookmarkIcon, PencilIcon } from "lucide-react";
+import { BookOpen, ArrowLeft, Loader2 } from "lucide-react";
+import { ScrollText, BookmarkIcon, PencilIcon, Highlighter } from "lucide-react";
 import { highlightService } from "@/services/highlightService";
 
 export function AllLawsView() {
@@ -26,6 +26,21 @@ export function AllLawsView() {
   const handleBack = () => {
     setSelectedLaw(null);
     setSelectedLawName("");
+  };
+  
+  // Get only the most recent highlights (last 10)
+  const getRecentHighlights = () => {
+    const allHighlights = highlightService.getHighlights();
+    return allHighlights
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 10);
+  };
+  
+  // Get stored favorites from localStorage
+  const getFavorites = () => {
+    const favoritesKey = "article_favorites";
+    const storedFavorites = localStorage.getItem(favoritesKey);
+    return storedFavorites ? JSON.parse(storedFavorites) : [];
   };
   
   const renderContent = () => {
@@ -48,12 +63,38 @@ export function AllLawsView() {
                 </CardContent>
               </Card>
               
-              {/* Placeholder for favorited articles */}
-              <div className="text-center py-6 text-muted-foreground">
-                <BookmarkIcon className="mx-auto mb-2 h-12 w-12 opacity-30" />
-                <p>Nenhum artigo favoritado ainda</p>
-                <p className="text-sm">Favorita artigos para acessá-los rapidamente</p>
-              </div>
+              {/* Display favorite articles */}
+              {getFavorites().length > 0 ? (
+                getFavorites().map((favorite: any, index: number) => (
+                  <Card key={index} className="p-4">
+                    <CardContent>
+                      <h4 className="font-medium mb-2">{favorite.lawName} - Art. {favorite.articleId}</h4>
+                      <p className="text-muted-foreground line-clamp-3">{favorite.text}</p>
+                      <div className="flex justify-end mt-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-xs"
+                          onClick={() => {
+                            if (favorite.lawName) {
+                              handleSelectLaw(favorite.lawName);
+                              setView("laws");
+                            }
+                          }}
+                        >
+                          Ver artigo
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <div className="text-center py-6 text-muted-foreground">
+                  <BookmarkIcon className="mx-auto mb-2 h-12 w-12 opacity-30" />
+                  <p>Nenhum artigo favoritado ainda</p>
+                  <p className="text-sm">Favorita artigos para acessá-los rapidamente</p>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -74,10 +115,10 @@ export function AllLawsView() {
                 </CardContent>
               </Card>
               
-              {/* Display highlighted texts */}
+              {/* Display highlighted texts - only the most recent ones */}
               <div className="space-y-4">
-                {highlightService.getHighlights().length > 0 ? (
-                  highlightService.getHighlights().map((highlight, index) => (
+                {getRecentHighlights().length > 0 ? (
+                  getRecentHighlights().map((highlight, index) => (
                     <Card key={index} className="p-4">
                       <CardContent>
                         <p className="text-sm text-muted-foreground mb-2">
@@ -86,9 +127,24 @@ export function AllLawsView() {
                         <div className="p-3 rounded-md" style={{ backgroundColor: highlight.color + '40' }}>
                           <p className="italic">"{highlight.text}"</p>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-2">
-                          {new Date(highlight.timestamp).toLocaleString()}
-                        </p>
+                        <div className="flex justify-between items-center mt-2">
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(highlight.timestamp).toLocaleString()}
+                          </p>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="text-xs"
+                            onClick={() => {
+                              if (highlight.lawName) {
+                                handleSelectLaw(highlight.lawName);
+                                setView("laws");
+                              }
+                            }}
+                          >
+                            Ver artigo
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   ))

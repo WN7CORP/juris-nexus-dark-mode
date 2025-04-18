@@ -19,7 +19,7 @@ export function ArticleHighlighter({
   articleId,
   lawName,
   isHighlighting,
-  highlightColor,
+  highlightColor = "#E5DEFF", // Light purple color
   onHighlightEnd
 }: ArticleHighlighterProps) {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -30,7 +30,7 @@ export function ArticleHighlighter({
     
     const range = selection.getRangeAt(0);
     const span = document.createElement("span");
-    span.style.backgroundColor = highlightColor;
+    span.style.backgroundColor = "#E5DEFF"; // Light purple highlight
     span.classList.add("highlighted-text");
     
     try {
@@ -39,7 +39,7 @@ export function ArticleHighlighter({
         articleId,
         lawName,
         text: selection.toString(),
-        color: highlightColor,
+        color: "#E5DEFF",
         timestamp: Date.now()
       });
       toast({
@@ -60,7 +60,7 @@ export function ArticleHighlighter({
         onClick={isHighlighting ? applyHighlight : undefined}
       >
         {text.split('\n').map((line, index) => (
-          <p key={index} className="mb-2">{line}</p>
+          <p key={index} className="mb-4">{line}</p>
         ))}
       </div>
       
@@ -74,7 +74,7 @@ export function ArticleHighlighter({
           >
             <div className="bg-vade-darker/95 backdrop-blur-lg rounded-lg p-3 shadow-lg border border-white/10 flex items-center gap-2">
               <span className="text-sm text-white/80">Selecione o texto para grifar</span>
-              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: highlightColor }} />
+              <div className="w-4 h-4 rounded-full bg-[#E5DEFF]" />
               <Button
                 variant="ghost"
                 size="sm"
