@@ -1,6 +1,6 @@
 
 // Serviço de narração de texto por voz
-const apiKey = 'AIzaSyCX26cgIpSd-BvtOLDdEQFa28_wh_HX1uk';
+const apiKey = 'AIzaSyDvJ23IolKwjdxAnTv7l8DwLuwGRZ_tIR8';
 const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
 let audioElement: HTMLAudioElement | null = null;
 
