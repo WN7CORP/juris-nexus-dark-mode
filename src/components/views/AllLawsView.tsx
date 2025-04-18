@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLawList, useLawArticles } from "@/services/googleSheetsService";
@@ -10,6 +9,7 @@ import { BookOpen, ArrowLeft, Loader2 } from "lucide-react";
 import { ScrollText } from "lucide-react";
 
 export function AllLawsView() {
+  const [view, setView] = useState<"laws" | "favorites" | "annotations">("laws");
   const { laws, loading: loadingLaws } = useLawList();
   const [selectedLaw, setSelectedLaw] = useState<string | null>(null);
   const [selectedLawName, setSelectedLawName] = useState<string>("");
@@ -26,10 +26,24 @@ export function AllLawsView() {
     setSelectedLawName("");
   };
   
-  return (
-    <div className="space-y-6">
-      <AnimatePresence mode="wait">
-        {!selectedLaw ? (
+  const renderContent = () => {
+    switch (view) {
+      case "favorites":
+        return (
+          <div className="space-y-6">
+            <h2 className="text-xl font-serif text-gradient">Artigos Favoritados</h2>
+            {/* Implement favorites view */}
+          </div>
+        );
+      case "annotations":
+        return (
+          <div className="space-y-6">
+            <h2 className="text-xl font-serif text-gradient">Minhas Anotações</h2>
+            {/* Implement annotations view */}
+          </div>
+        );
+      default:
+        return (
           <motion.div
             key="law-list"
             initial={{ opacity: 0 }}
@@ -73,55 +87,33 @@ export function AllLawsView() {
               ))
             )}
           </motion.div>
-        ) : (
-          <motion.div
-            key="articles-list"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <Button
-                  variant="ghost"
-                  className="flex items-center gap-2 hover:bg-vade-purple-primary/20"
-                  onClick={handleBack}
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Voltar
-                </Button>
-              </div>
-              <h2 className="text-xl font-serif text-gradient">{selectedLawName}</h2>
-              <div className="w-20" /> {/* Espaçador */}
-            </div>
-            
-            {loadingArticles ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Loader2 className="h-12 w-12 animate-spin text-vade-purple-primary mb-4" />
-                <p className="text-white/70">Carregando artigos...</p>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {articles.map((article, index) => (
-                  <div key={index}>
-                    <ArticleCard 
-                      article={article} 
-                      lawName={selectedLawName} 
-                    />
-                  </div>
-                ))}
-                
-                {articles.length === 0 && (
-                  <div className="text-center py-12">
-                    <BookOpen className="mx-auto h-12 w-12 text-vade-purple-primary/30 mb-4" />
-                    <p className="text-white/70">Nenhum artigo encontrado nesta lei.</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+        );
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-4 mb-6">
+        <Button
+          variant={view === "laws" ? "default" : "outline"}
+          onClick={() => setView("laws")}
+        >
+          Leis
+        </Button>
+        <Button
+          variant={view === "favorites" ? "default" : "outline"}
+          onClick={() => setView("favorites")}
+        >
+          Favoritos
+        </Button>
+        <Button
+          variant={view === "annotations" ? "default" : "outline"}
+          onClick={() => setView("annotations")}
+        >
+          Anotações
+        </Button>
+      </div>
+      {renderContent()}
     </div>
   );
 }

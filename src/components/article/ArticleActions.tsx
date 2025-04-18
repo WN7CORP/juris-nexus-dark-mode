@@ -1,22 +1,26 @@
 
 import { Button } from "@/components/ui/button";
-import { Play, Pause, Bot } from "lucide-react";
+import { Play, Pause, Brain, Copy, Pencil } from "lucide-react";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa6";
 
 interface ArticleActionsProps {
   onExplain: () => void;
   onNarrate: () => void;
+  onAnnotate: () => void;
   isNarrating: boolean;
   onFavorite: () => void;
   isFavorited: boolean;
+  showAnnotations: boolean;
 }
 
 export function ArticleActions({
   onExplain,
   onNarrate,
+  onAnnotate,
   isNarrating,
   onFavorite,
-  isFavorited
+  isFavorited,
+  showAnnotations
 }: ArticleActionsProps) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -26,7 +30,7 @@ export function ArticleActions({
         onClick={onExplain}
         className="flex items-center gap-1 bg-vade-purple-primary hover:bg-vade-purple-primary/80"
       >
-        <Bot size={14} />
+        <Brain size={14} />
         Explicar
       </Button>
       
@@ -38,6 +42,16 @@ export function ArticleActions({
       >
         {isNarrating ? <Pause size={14} /> : <Play size={14} />}
         {isNarrating ? "Pausar" : "Narrar"}
+      </Button>
+      
+      <Button
+        variant={showAnnotations ? "default" : "outline"}
+        size="sm"
+        onClick={onAnnotate}
+        className="flex items-center gap-1"
+      >
+        <Pencil size={14} />
+        Anotações
       </Button>
       
       <Button

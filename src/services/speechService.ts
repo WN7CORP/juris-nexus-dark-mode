@@ -1,20 +1,7 @@
-
 // Serviço de narração de texto por voz
+const apiKey = 'AIzaSyCX26cgIpSd-BvtOLDdEQFa28_wh_HX1uk';
+const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
 
-let speechSynthesis: SpeechSynthesis | null = null;
-let speechUtterance: SpeechSynthesisUtterance | null = null;
-let isPlaying = false;
-
-// Inicializar o serviço
-const init = () => {
-  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-    speechSynthesis = window.speechSynthesis;
-    return true;
-  }
-  return false;
-};
-
-// Processar texto para narração
 const processText = (text: string): string => {
   // Remover emojis
   text = text.replace(/[\u{1F600}-\u{1F64F}|\u{1F300}-\u{1F5FF}|\u{1F680}-\u{1F6FF}|\u{1F700}-\u{1F77F}|\u{1F780}-\u{1F7FF}|\u{1F800}-\u{1F8FF}|\u{1F900}-\u{1F9FF}|\u{1FA00}-\u{1FA6F}|\u{1FA70}-\u{1FAFF}|\u{2702}-\u{27B0}|\u{24C2}-\u{1F251}]/gu, ' ');
@@ -57,94 +44,47 @@ const processText = (text: string): string => {
   return text;
 };
 
-// Falar o texto
-const speak = (text: string, onEnd?: () => void, onStart?: () => void): boolean => {
-  if (!init()) return false;
-  
-  if (isPlaying) {
-    stop();
-  }
-  
-  const processedText = processText(text);
-  
-  speechUtterance = new SpeechSynthesisUtterance(processedText);
-  
-  // Selecionar voz em português se disponível
-  if (speechSynthesis!.getVoices().length > 0) {
-    const voices = speechSynthesis!.getVoices();
-    const ptVoice = voices.find(voice => 
-      voice.lang.includes('pt') || voice.lang.includes('PT')
-    );
+const speak = async (text: string, onEnd?: () => void, onStart?: () => void): Promise<boolean> => {
+  try {
+    const requestBody = {
+      input: { text: processText(text) },
+      voice: {
+        languageCode: 'pt-BR',
+        name: 'pt-BR-Wavenet-E'
+      },
+      audioConfig: {
+        audioEncoding: 'MP3'
+      }
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) throw new Error('Failed to generate speech');
+
+    const data = await response.json();
+    const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
     
-    if (ptVoice) {
-      speechUtterance.voice = ptVoice;
-    }
+    audio.onended = () => {
+      if (onEnd) onEnd();
+    };
+
+    audio.onplay = () => {
+      if (onStart) onStart();
+    };
+
+    await audio.play();
+    return true;
+  } catch (error) {
+    console.error('Error in speech synthesis:', error);
+    return false;
   }
-  
-  // Configurações da voz
-  speechUtterance.rate = 1.0;  // velocidade normal
-  speechUtterance.pitch = 1.0; // tom normal
-  speechUtterance.volume = 1.0; // volume máximo
-  speechUtterance.lang = 'pt-BR';
-  
-  // Eventos
-  speechUtterance.onstart = () => {
-    isPlaying = true;
-    if (onStart) onStart();
-  };
-  
-  speechUtterance.onend = () => {
-    isPlaying = false;
-    if (onEnd) onEnd();
-  };
-  
-  speechUtterance.onerror = (event) => {
-    console.error('Erro na narração:', event);
-    isPlaying = false;
-    if (onEnd) onEnd();
-  };
-  
-  // Iniciar narração
-  speechSynthesis!.speak(speechUtterance);
-  return true;
-};
-
-// Pausar a narração
-const pause = (): boolean => {
-  if (!speechSynthesis || !isPlaying) return false;
-  
-  speechSynthesis.pause();
-  isPlaying = false;
-  return true;
-};
-
-// Resumir a narração
-const resume = (): boolean => {
-  if (!speechSynthesis || isPlaying) return false;
-  
-  speechSynthesis.resume();
-  isPlaying = true;
-  return true;
-};
-
-// Parar a narração
-const stop = (): boolean => {
-  if (!speechSynthesis) return false;
-  
-  speechSynthesis.cancel();
-  isPlaying = false;
-  return true;
-};
-
-// Verificar se está reproduzindo
-const isNarrating = (): boolean => {
-  return isPlaying;
 };
 
 export default {
   speak,
-  pause,
-  resume,
-  stop,
-  isNarrating
+  processText
 };

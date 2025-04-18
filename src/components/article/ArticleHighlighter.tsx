@@ -2,9 +2,13 @@
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { highlightService } from "@/services/highlightService";
+import { toast } from "@/hooks/use-toast";
 
 interface ArticleHighlighterProps {
   text: string;
+  articleId: string;
+  lawName: string;
   isHighlighting: boolean;
   highlightColor: string;
   onHighlightEnd: () => void;
@@ -12,6 +16,8 @@ interface ArticleHighlighterProps {
 
 export function ArticleHighlighter({
   text,
+  articleId,
+  lawName,
   isHighlighting,
   highlightColor,
   onHighlightEnd
@@ -29,6 +35,17 @@ export function ArticleHighlighter({
     
     try {
       range.surroundContents(span);
+      highlightService.saveHighlight({
+        articleId,
+        lawName,
+        text: selection.toString(),
+        color: highlightColor,
+        timestamp: Date.now()
+      });
+      toast({
+        title: "Texto grifado!",
+        description: "O destaque foi salvo com sucesso."
+      });
       onHighlightEnd();
     } catch (e) {
       console.error("Erro ao aplicar destaque:", e);
