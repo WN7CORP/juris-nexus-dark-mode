@@ -6,7 +6,7 @@ import { ArticleCard } from "@/components/article/ArticleCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookOpen, ArrowLeft, Loader2 } from "lucide-react";
+import { BookOpen, ArrowLeft, Loader2, Highlighter } from "lucide-react";
 import { ScrollText, BookmarkIcon, PencilIcon } from "lucide-react";
 import { highlightService } from "@/services/highlightService";
 
