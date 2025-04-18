@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { Play, Pause, Copy, Bookmark, Highlighter, Bot, FileText, FileOutput, HelpCircle, Loader2, Robot as BotIcon } from "lucide-react";
+import { Play, Pause, Copy, Bookmark, Highlighter, Bot, FileText, FileOutput, HelpCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
@@ -10,7 +11,8 @@ import { Article } from "@/services/googleSheetsService";
 import speechService from "@/services/speechService";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { FaHighlight, FaBookmark as FaSolidBookmark, FaRegularBookmark, FaRobot, FaRegularNote, FaRegularArrowUpFromBracket } from "react-icons/fa6";
+import { FaHighlighter, FaBookmark, FaRegBookmark } from "react-icons/fa6";
+import { getArticleExplanation, askQuestionAboutArticle } from "@/services/geminiService";
 
 interface ArticleCardProps {
   article: Article;
@@ -234,7 +236,7 @@ export function ArticleCard({ article, lawName, onExport }: ArticleCardProps) {
                   className="flex items-center gap-1"
                   onClick={toggleFavorite}
                 >
-                  {isFavorited ? <FaSolidBookmark size={14} /> : <FaRegularBookmark size={14} />}
+                  {isFavorited ? <FaBookmark size={14} /> : <FaRegBookmark size={14} />}
                   {isFavorited ? "Favoritado" : "Favoritar"}
                 </Button>
               </div>
@@ -248,7 +250,7 @@ export function ArticleCard({ article, lawName, onExport }: ArticleCardProps) {
           <Card className="gemini-feature overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-xl flex items-center gap-2">
-                <FaRobot size={24} className="text-vade-purple-primary animate-pulse-soft" />
+                <Bot size={24} className="text-vade-purple-primary animate-pulse-soft" />
                 <span className="text-gradient">Explicação Gemini</span>
               </CardTitle>
               
@@ -305,7 +307,7 @@ export function ArticleCard({ article, lawName, onExport }: ArticleCardProps) {
             <Card className="card-neo">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <FaRegularNote size={20} />
+                  <FileText size={20} />
                   Anotações
                 </CardTitle>
               </CardHeader>
@@ -341,7 +343,7 @@ export function ArticleCard({ article, lawName, onExport }: ArticleCardProps) {
               <Card className="card-neo flex-1">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
-                    <FaRegularArrowUpFromBracket size={20} />
+                    <FileOutput size={20} />
                     Exportar
                   </CardTitle>
                 </CardHeader>
@@ -386,7 +388,7 @@ export function ArticleCard({ article, lawName, onExport }: ArticleCardProps) {
               >
                 {isSubmittingQuestion ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" /> 
-                ) : <BotIcon className="mr-2" />}
+                ) : <Bot className="mr-2" />}
                 Enviar Pergunta
               </Button>
             </div>
