@@ -1,6 +1,8 @@
+
 // Serviço de narração de texto por voz
 const apiKey = 'AIzaSyCX26cgIpSd-BvtOLDdEQFa28_wh_HX1uk';
 const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
+let audioElement: HTMLAudioElement | null = null;
 
 const processText = (text: string): string => {
   // Remover emojis
@@ -46,6 +48,9 @@ const processText = (text: string): string => {
 
 const speak = async (text: string, onEnd?: () => void, onStart?: () => void): Promise<boolean> => {
   try {
+    // Stop any ongoing speech first
+    stop();
+    
     const requestBody = {
       input: { text: processText(text) },
       voice: {
@@ -66,17 +71,17 @@ const speak = async (text: string, onEnd?: () => void, onStart?: () => void): Pr
     if (!response.ok) throw new Error('Failed to generate speech');
 
     const data = await response.json();
-    const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+    audioElement = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
     
-    audio.onended = () => {
+    audioElement.onended = () => {
       if (onEnd) onEnd();
     };
 
-    audio.onplay = () => {
+    audioElement.onplay = () => {
       if (onStart) onStart();
     };
 
-    await audio.play();
+    await audioElement.play();
     return true;
   } catch (error) {
     console.error('Error in speech synthesis:', error);
@@ -84,7 +89,16 @@ const speak = async (text: string, onEnd?: () => void, onStart?: () => void): Pr
   }
 };
 
+const stop = () => {
+  if (audioElement) {
+    audioElement.pause();
+    audioElement.currentTime = 0;
+    audioElement = null;
+  }
+};
+
 export default {
   speak,
-  processText
+  processText,
+  stop
 };

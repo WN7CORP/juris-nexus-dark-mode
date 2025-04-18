@@ -1,10 +1,9 @@
 
 import { useState } from "react";
-import { Play, Pause, Copy, Bot, Highlighter } from "lucide-react";
+import { Copy, Highlighter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { FaBookmark, FaRegBookmark } from "react-icons/fa6";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Article } from "@/services/googleSheetsService";
 import { toast } from "@/hooks/use-toast";
 import speechService from "@/services/speechService";
@@ -23,6 +22,8 @@ export function ArticleCard({ article, lawName }: ArticleCardProps) {
   const [isFavorited, setIsFavorited] = useState(false);
   const [isHighlighting, setIsHighlighting] = useState(false);
   const [highlightColor, setHighlightColor] = useState("#FFEB3B");
+  const [showAnnotations, setShowAnnotations] = useState(false);
+  const [showExplanation, setShowExplanation] = useState(false);
   
   const handleNarration = () => {
     if (isNarrating) {
@@ -52,6 +53,14 @@ export function ArticleCard({ article, lawName }: ArticleCardProps) {
       variant: !isFavorited ? "default" : "destructive"
     });
   };
+  
+  const toggleAnnotations = () => {
+    setShowAnnotations(!showAnnotations);
+  };
+  
+  const handleExplain = () => {
+    setShowExplanation(true);
+  };
 
   return (
     <Card className={article.isNumbered ? "article-card" : "mt-8 mb-4"}>
@@ -63,17 +72,21 @@ export function ArticleCard({ article, lawName }: ArticleCardProps) {
         {/* Top Actions */}
         <div className="flex gap-2 mb-4">
           <ArticleActions
-            onExplain={() => {}} // Will be implemented in ArticleAIExplanation
+            onExplain={handleExplain}
             onNarrate={handleNarration}
             isNarrating={isNarrating}
             onFavorite={toggleFavorite}
             isFavorited={isFavorited}
+            onAnnotate={toggleAnnotations}
+            showAnnotations={showAnnotations}
           />
         </div>
         
         {/* Article Text with Highlighter */}
         <ArticleHighlighter
           text={article.text}
+          articleId={article.number}
+          lawName={lawName}
           isHighlighting={isHighlighting}
           highlightColor={highlightColor}
           onHighlightEnd={() => setIsHighlighting(false)}
@@ -102,16 +115,18 @@ export function ArticleCard({ article, lawName }: ArticleCardProps) {
           </Button>
         </div>
         
+        {/* Annotations Component - Show when toggled */}
+        {showAnnotations && (
+          <ArticleAnnotations
+            articleId={article.number}
+            lawName={lawName}
+          />
+        )}
+        
         {/* AI Explanation Component */}
         <ArticleAIExplanation
           articleNumber={article.number}
           articleText={article.text}
-          lawName={lawName}
-        />
-        
-        {/* Annotations Component */}
-        <ArticleAnnotations
-          articleId={article.number}
           lawName={lawName}
         />
       </CardContent>
